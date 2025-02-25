@@ -26,7 +26,7 @@ export default function MainPage() {
                 </View>
 
                 <TouchableOpacity className="p-1 ml-2">
-                    <Ionicons name="menu" size={35} color="#598da5" />
+                    <Ionicons name="menu" size={35} color="#fbfff5" />
                 </TouchableOpacity>
             </View>
 
