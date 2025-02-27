@@ -6,6 +6,7 @@ export default function RootLayout() {
 	<Stack>
 	    <Stack.Screen name="index" options={{headerShown: false}} />
 	    <Stack.Screen name="mainpage" options={{headerShown: false}} />
+	    <Stack.Screen name="addpage" options={{headerShown: false}} />
 	</Stack>
     );
 }

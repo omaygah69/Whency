@@ -8,7 +8,9 @@ module.exports = {
 	    colors: {
 		bgColor: "#598da5",
 		btnLight: "#c4d5dd",
-		textLight: "#fbfff5"
+		textLight: "#fbfff5",
+		darkinBlue: "#143844",
+		pinkisha: "#e8c6bc"
 	    },
 	},
     },

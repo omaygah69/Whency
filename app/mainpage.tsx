@@ -30,24 +30,24 @@ export default function MainPage() {
                 </TouchableOpacity>
             </View>
 
-            <View className="absolute bottom-0 left-0 right-0 h-[90px] flex-row bg-white justify-around items-center border-t-2 border-[#598da5]">
+            <View className="absolute bottom-0 left-0 right-0 h-[90px] flex-row bg-darkinBlue justify-around items-center border-t-2 border-[#598da5]">
                 <TouchableOpacity className="items-center" onPress={() => router.push("/gallery")}>
-                    <Feather name="alert-triangle" size={35} color="#598da5" />
+                    <Feather name="alert-triangle" size={40} color="#e8c6bc" />
                     <Text className="text-[#598da5] text-[15px] mt-1">Alert</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity className="items-center">
-                    <MaterialIcons name="add-circle" size={35} color="#598da5" />
+                <TouchableOpacity className="items-center" onPress={() => router.push("/addpage") }>
+                    <MaterialIcons name="add-circle" size={40} color="#e8c6bc" />
                     <Text className="text-[#598da5] text-[15px] mt-1">Add</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity className="items-center" onPress={() => router.push("/camera")}>
-                    <Fontisto name="locked" size={35} color="#598da5" />
+                    <Fontisto name="locked" size={40} color="#e8c6bc" />
                     <Text className="text-[#598da5] text-[15px] mt-1">Vault</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity className="items-center">
-                    <MaterialIcons name="settings" size={35} color="#598da5" />
+                    <MaterialIcons name="settings" size={40} color="#e8c6bc" />
                     <Text className="text-[#598da5] text-[15px] mt-1">Settings</Text>
                 </TouchableOpacity>
             </View>
