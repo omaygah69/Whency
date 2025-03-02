@@ -10,7 +10,8 @@ module.exports = {
 		btnLight: "#c4d5dd",
 		textLight: "#fbfff5",
 		darkinBlue: "#143844",
-		pinkisha: "#e8c6bc"
+		pinkisha: "#e8c6bc",
+		blueish: "#164356",
 	    },
 	},
     },
