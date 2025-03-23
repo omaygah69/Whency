@@ -49,9 +49,9 @@ export default function MainPage() {
         <SafeAreaView className="flex-1 bg-bgColor">
             <View className="flex-row items-center mx-4 mt-6">
                 <View className="flex-row items-center bg-white rounded-full flex-1 shadow-md">
-                    <TouchableOpacity className="p-1">
+                    <View className="p-1">
                         <Ionicons name="search" size={35} color="#598da5" />
-                    </TouchableOpacity>
+                    </View>
 
                     <TextInput
                         className="font-bold flex-1 h-10 ml-2 text-black text-lg placeholder:text-[#598da5]"
