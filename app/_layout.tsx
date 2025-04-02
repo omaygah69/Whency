@@ -9,6 +9,7 @@ export default function RootLayout() {
 	    <Stack.Screen name="addpage" options={{headerShown: false}} />
 	    <Stack.Screen name="vault" options={{headerShown: false}} />
 	    <Stack.Screen name="alertpage" options={{headerShown: false}} />
+	    <Stack.Screen name="passworddetails" options={{headerShown: false}} />
 	</Stack>
     );
 }

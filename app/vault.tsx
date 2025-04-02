@@ -56,7 +56,8 @@ export default function Vault() {
 	    ) : (
 		<ScrollView className="w-full">
 		    {passwordEntries.map((entry, index) => (
-			<TouchableOpacity key={index} className="bg-btnLight p-4 my-2 rounded-md">
+			<TouchableOpacity key={index} className="bg-btnLight p-4 my-2 rounded-md"
+			onPress={() => router.push({ pathname: "/passworddetails", params: { name: entry.name } })}>
 			    <Text className="text-black font-bold">Name: {entry.name}</Text>
 			    <Text className="text-black break-all">Hash: {entry.hashedPassword}</Text>
 			    <Text className="text-black">

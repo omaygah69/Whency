@@ -45,7 +45,6 @@ export default function AlertPage() {
 	    <Text className="text-textLight text-center text-[30px] font-bold font-[Cinzel] mb-6">
 		Expired Passwords
 	    </Text>
-	    <Text className="text-white font-bold text-lg">Expired Passwords</Text>
 
 	    {passwordEntries.length === 0 ? (
 		<Text className="text-white">No passwords stored yet.</Text>
