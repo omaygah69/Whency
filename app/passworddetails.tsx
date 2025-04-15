@@ -96,86 +96,88 @@ export default function PasswordDetails() {
     };
 
     return (
-        <ScrollView className="flex-1 p-6 bg-bgColor">
-            <TouchableOpacity className="absolute top-4 left-4 p-2" onPress={() => router.back()}>
+        <View className="flex-1 p-20 bg-bgColor jutify-center items-center">
+            <TouchableOpacity className="absolute top-4 left-4" onPress={() => router.back()}>
                 <Ionicons name="arrow-back" size={40} color="#fbfff5" />
             </TouchableOpacity>
 
-            <Text className="text-textLight text-center text-[30px] font-bold mb-1 mt-40">Blyat</Text>
+	    
+	    {!isAuthenticated ? (
+                <View className="w-full items-center">
+		    <Text className="text-textLight text-center text-[30px] font-bold font-[Cinzel] mt-40">
+			Verify
+		    </Text>
 
-	    <View className="flex-1 justify-center items-center">
-		{!isAuthenticated ? (
-                    <View className="w-full mt-1 items-center">
-			<Text className="text-white text-xl mb-2">Enter Password:</Text>
-			<TextInput
-                            className="font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
-                            secureTextEntry
-                            value={enteredPassword}
-                            onChangeText={setEnteredPassword}
-                            placeholder="Enter password"
-                            placeholderTextColor="#598da5"
-			/>
-			<TouchableOpacity
-                            className="bg-blueish px-6 py-3 rounded-full w-60 mt-6 self-center mt-6"
-                            onPress={handleAuthenticate}
-			>
-                            <Text className="text-black font-bold text-center">Unlock</Text>
-			</TouchableOpacity>
-                    </View>
-		) : (
-                    <View className="w-full">
-			<Text className="text-white">Name:</Text>
-			<TextInput
-                            className="bg-white p-3 rounded-md text-black w-full mb-3"
-                            value={newName}
-                            onChangeText={setNewName}
-			/>
+		    <TextInput
+                        className="mt-6 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
+                        secureTextEntry
+                        value={enteredPassword}
+                        onChangeText={setEnteredPassword}
+                        placeholder="Enter password"
+                        placeholderTextColor="#598da5"
+		    />
+		    <TouchableOpacity
+                        className="bg-blueish px-6 py-3 rounded-full w-60 mt-6 self-center mt-6"
+                        onPress={handleAuthenticate}
+		    >
+                        <Text className="text-black font-bold text-center">Unlock</Text>
+		    </TouchableOpacity>
+                </View>
+	    ) : (
+                <View className="w-full items-center">
+		    <Text className="text-textLight text-center text-[25px] font-[Cinzel] mt-35">
+			Name:</Text>
+		    <TextInput
+                        className="my-4 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
+                        value={newName}
+                        onChangeText={setNewName}
+		    />
 
-			<Text className="text-white">New Password (Leave empty to keep the same):</Text>
-			<TextInput
-                            className="bg-white p-3 rounded-md text-black w-full mb-3"
-                            secureTextEntry
-                            value={newPassword}
-                            onChangeText={setNewPassword}
-                            placeholder="Enter new password"
-                            placeholderTextColor="#598da5"
-			/>
+		    <Text className="text-white text-[15px] my-2">New Password (Leave empty to keep the same):</Text>
+		    <TextInput
+                        className="my-21 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
+                        secureTextEntry
+                        value={newPassword}
+                        onChangeText={setNewPassword}
+                        placeholder="Enter new password"
+                        placeholderTextColor="#598da5"
+		    />
 
-			<Text className="text-white mb-2">Select Platforms:</Text>
-			{PLATFORMS.map((platform) => (
-                            <TouchableOpacity
-				key={platform}
-				className="flex-row items-center mb-2"
-				onPress={() => handlePlatformToggle(platform)}
-                            >
-				<View
-                                    className={`w-5 h-5 rounded-sm border ${
+		    <Text className="text-white text-[20px] my-2">Select Platforms:</Text>
+		    {PLATFORMS.map((platform) => (
+                        <TouchableOpacity
+			    key={platform}
+			    className="flex-row items-center mb-2"
+			    onPress={() => handlePlatformToggle(platform)}
+                        >
+			    <View
+                                className={`w-5 h-5 rounded-sm border ${
                                     selectedPlatforms.includes(platform) ? "bg-blue-500" : "border-gray-500"
                                 }`}
-				/>
-				<Text className="text-white ml-2">{platform}</Text>
-                            </TouchableOpacity>
-			))}
+			    />
+			    <Text className="text-white text-[15] ml-2">{platform}</Text>
+                        </TouchableOpacity>
+		    ))}
 
-			{selectedPlatforms.includes("Custom") && (
-                            <TextInput
-				className="bg-white p-3 rounded-md text-black w-full mb-3"
-				placeholder="Enter custom platform"
-				placeholderTextColor="#598da5"
-				value={customPlatform}
-				onChangeText={setCustomPlatform}
-                            />
-			)}
+		    {selectedPlatforms.includes("Custom") && (
+                        <TextInput
+                            className="mt-6 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
+			    placeholder="Enter custom platform"
+			    placeholderTextColor="#598da5"
+			    value={customPlatform}
+			    onChangeText={setCustomPlatform}
+                        />
+		    )}
 
-			<TouchableOpacity
-                            className="bg-green-500 p-3 rounded-md w-full mt-4"
-                            onPress={handleSaveChanges}
-			>
-                            <Text className="text-white font-bold text-center">Save Changes</Text>
-			</TouchableOpacity>
-                    </View>
-		)}
-	    </View>
-        </ScrollView>
+		    <TouchableOpacity
+                        className="bg-blueish px-6 py-3 rounded-full w-60 mt-6 self-center mt-6"
+                        onPress={handleSaveChanges}
+		    >
+                        <Text className="text-white font-bold text-center">Save Changes</Text>
+		    </TouchableOpacity>
+                </View>
+	    )}
+
+        </View>
     );
 }
