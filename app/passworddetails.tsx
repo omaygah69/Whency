@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import bcrypt from "bcryptjs";
 import { Picker } from "@react-native-picker/picker";
+import Toast from "react-native-toast-message";
 
 const PLATFORMS = ["YouTube", "Twitter", "Facebook", "Instagram", "Snapchat", "Custom"];
 
@@ -20,6 +21,7 @@ export default function PasswordDetails() {
     const [newHashedPassword, setNewHashedPassword] = useState("");
     const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
     const [customPlatform, setCustomPlatform] = useState("");
+    const [lastClickTime, setLastClickTime] = useState<number | null>(null);
 
     useEffect(() => {
         loadEntry();
@@ -41,7 +43,43 @@ export default function PasswordDetails() {
         }
     };
 
+    const handleDeletePassword = async () => {
+	const currentTime = new Date().getTime();
+	
+	if (lastClickTime && currentTime - lastClickTime < 500) { // 500 ms for double-click detection
+            try {
+		const storedData = await AsyncStorage.getItem("passwords");
+		if (storedData) {
+                    let entries = JSON.parse(storedData);
+                    const updatedEntries = entries.filter((e: any) => e.name !== entry.name);
+                    await AsyncStorage.setItem("passwords", JSON.stringify(updatedEntries));
+                    Toast.show({
+			type: "success",
+			text1: "Deleted",
+			text2: "Password entry deleted successfully.",
+                    });
+                    router.push("/vault"); 
+		}
+            } catch (error) {
+		console.error("Error deleting password:", error);
+		Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Failed to delete password.",
+		});
+            }
+	} else {
+            setLastClickTime(currentTime); // Update last click time
+            Toast.show({
+		type: "info",
+		text1: "Double-click to confirm deletion",
+            });
+	}
+    };
+
+
     const handleAuthenticate = async () => {
+	console.log("asdblyat")
         if (!entry) {
             Alert.alert("Error", "Password entry not loaded. Please try again.");
             return;
@@ -59,7 +97,12 @@ export default function PasswordDetails() {
             setNewName(entry.name);
             setNewHashedPassword(entry.hashedPassword);
         } else {
-            Alert.alert("Incorrect Password", "The entered password is incorrect.");
+	    Toast.show({
+		type: "error",
+		text1: "Mismatch",
+		text2: "Password does not mtach.",
+	    });
+	    return;
         }
     };
 
@@ -88,7 +131,7 @@ export default function PasswordDetails() {
                 );
                 await AsyncStorage.setItem("passwords", JSON.stringify(updatedEntries));
                 Alert.alert("Success", "Password details updated.");
-                router.back();
+                router.push("/vault");
             }
         } catch (error) {
             console.error("Error saving changes:", error);
@@ -175,9 +218,17 @@ export default function PasswordDetails() {
 		    >
                         <Text className="text-white font-bold text-center">Save Changes</Text>
 		    </TouchableOpacity>
+
+		    <TouchableOpacity
+			className="bg-red-500 px-6 py-3 rounded-full w-60 mt-6 self-center"
+				   onPress={handleDeletePassword}
+		    >
+			<Text className="text-white font-bold text-center">Delete Password</Text>
+		    </TouchableOpacity>
+
                 </View>
 	    )}
-
+	    <Toast position="top" />
         </View>
     );
 }

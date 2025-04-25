@@ -3,15 +3,19 @@ import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 export default function Vault() {
     const router = useRouter();
     // Set the type to match the stored object properties
     const [passwordEntries, setPasswordEntries] = useState([]);
 
-    useEffect(() => {
-	loadPasswords();
-    }, []);
+    useFocusEffect(
+	useCallback(() => {
+	    loadPasswords();
+	}, [])
+    );
 
     const loadPasswords = async () => {
 	try {
@@ -48,7 +52,7 @@ export default function Vault() {
 	    </View>
 
 	    <Text className="text-textLight text-center text-[30px] font-bold font-[Cinzel] mb-6">
-		Stored Passwords
+		Passwords Vault
 	    </Text>
 
 	    {passwordEntries.length === 0 ? (
