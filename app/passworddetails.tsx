@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import bcrypt from "bcryptjs";
-import { Picker } from "@react-native-picker/picker";
+import { digestStringAsync, CryptoDigestAlgorithm } from "expo-crypto";
 import Toast from "react-native-toast-message";
 
 const PLATFORMS = ["YouTube", "Twitter", "Facebook", "Instagram", "Snapchat", "Custom"];
+
+type PasswordEntry = {
+    name: string;
+    hashedPassword: string;
+    expiryDate: string;
+    platforms?: string[];
+};
 
 export default function PasswordDetails() {
     const router = useRouter();
     const { name } = useLocalSearchParams<{ name: string }>();
 
-    const [entry, setEntry] = useState<any>(null);
+    const [entry, setEntry] = useState<PasswordEntry | null>(null);
     const [enteredPassword, setEnteredPassword] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [newName, setNewName] = useState("");
@@ -32,10 +38,12 @@ export default function PasswordDetails() {
             const storedData = await AsyncStorage.getItem("passwords");
             if (storedData) {
                 const entries = JSON.parse(storedData);
-                const foundEntry = entries.find((e: any) => e.name === name);
+                const foundEntry = entries.find((e: PasswordEntry) => e.name === name);
                 if (foundEntry) {
                     setEntry(foundEntry);
                     setSelectedPlatforms(foundEntry.platforms || []);
+                } else {
+                    console.warn("No entry found for:", name);
                 }
             }
         } catch (error) {
@@ -43,91 +51,73 @@ export default function PasswordDetails() {
         }
     };
 
-    const handleDeletePassword = async () => {
-	const currentTime = new Date().getTime();
-	
-	if (lastClickTime && currentTime - lastClickTime < 500) { // 500 ms for double-click detection
-            try {
-		const storedData = await AsyncStorage.getItem("passwords");
-		if (storedData) {
-                    let entries = JSON.parse(storedData);
-                    const updatedEntries = entries.filter((e: any) => e.name !== entry.name);
-                    await AsyncStorage.setItem("passwords", JSON.stringify(updatedEntries));
-                    Toast.show({
-			type: "success",
-			text1: "Deleted",
-			text2: "Password entry deleted successfully.",
-                    });
-                    router.push("/vault"); 
-		}
-            } catch (error) {
-		console.error("Error deleting password:", error);
-		Toast.show({
-                    type: "error",
-                    text1: "Error",
-                    text2: "Failed to delete password.",
-		});
-            }
-	} else {
-            setLastClickTime(currentTime); // Update last click time
-            Toast.show({
-		type: "info",
-		text1: "Double-click to confirm deletion",
-            });
-	}
-    };
-
-
     const handleAuthenticate = async () => {
-	console.log("asdblyat")
         if (!entry) {
             Alert.alert("Error", "Password entry not loaded. Please try again.");
             return;
         }
 
-        if (!entry.hashedPassword) {
-            Alert.alert("Error", "No stored password found for this entry.");
-            return;
-        }
+        try {
+            const hashedEnteredPassword = await digestStringAsync(
+                CryptoDigestAlgorithm.SHA256,
+                enteredPassword.trim()
+            );
 
-        const isMatch = await bcrypt.compare(enteredPassword, entry.hashedPassword);
-
-        if (isMatch) {
-            setIsAuthenticated(true);
-            setNewName(entry.name);
-            setNewHashedPassword(entry.hashedPassword);
-        } else {
-	    Toast.show({
-		type: "error",
-		text1: "Mismatch",
-		text2: "Password does not mtach.",
-	    });
-	    return;
+            if (hashedEnteredPassword === entry.hashedPassword) {
+                setIsAuthenticated(true);
+                setNewName(entry.name);
+                setNewHashedPassword(entry.hashedPassword);
+            } else {
+                Toast.show({
+                    type: "error",
+                    text1: "Mismatch",
+                    text2: "Password does not match.",
+                });
+            }
+        } catch (err) {
+            console.error("Authentication error:", err);
         }
     };
 
     const handlePlatformToggle = (platform: string) => {
-        if (selectedPlatforms.includes(platform)) {
-            setSelectedPlatforms(selectedPlatforms.filter((p) => p !== platform));
-        } else {
-            setSelectedPlatforms([...selectedPlatforms, platform]);
-        }
+        setSelectedPlatforms((prev) =>
+            prev.includes(platform)
+                ? prev.filter((p) => p !== platform)
+                : [...prev, platform]
+        );
     };
 
     const handleSaveChanges = async () => {
         try {
             let updatedPassword = newHashedPassword;
             if (newPassword) {
-                updatedPassword = await bcrypt.hash(newPassword, 10);
+                updatedPassword = await digestStringAsync(
+                    CryptoDigestAlgorithm.SHA256,
+                    newPassword.trim()
+                );
+            }
+
+            let updatedPlatforms = [...selectedPlatforms];
+            if (
+                selectedPlatforms.includes("Custom") &&
+                customPlatform.trim() &&
+                !updatedPlatforms.includes(customPlatform.trim())
+            ) {
+                updatedPlatforms.push(customPlatform.trim());
             }
 
             const storedData = await AsyncStorage.getItem("passwords");
             if (storedData) {
-                let entries = JSON.parse(storedData);
-                let updatedEntries = entries.map((e: any) =>
-                    e.name === entry.name
-                    ? { ...e, name: newName, hashedPassword: updatedPassword, platforms: selectedPlatforms }
-                    : e
+                const entries = JSON.parse(storedData);
+                const updatedEntries = entries.map((e: PasswordEntry) =>
+                    e.name === entry!.name
+                        ? {
+                              ...e,
+                              name: newName,
+                              hashedPassword: updatedPassword,
+                              platforms: updatedPlatforms,
+                          }
+                        : e
                 );
                 await AsyncStorage.setItem("passwords", JSON.stringify(updatedEntries));
                 Alert.alert("Success", "Password details updated.");
@@ -138,97 +128,134 @@ export default function PasswordDetails() {
         }
     };
 
+    const handleDeletePassword = async () => {
+        const currentTime = new Date().getTime();
+
+        if (lastClickTime && currentTime - lastClickTime < 500) {
+            try {
+                const storedData = await AsyncStorage.getItem("passwords");
+                if (storedData) {
+                    const entries = JSON.parse(storedData);
+                    const updatedEntries = entries.filter((e: PasswordEntry) => e.name !== entry?.name);
+                    await AsyncStorage.setItem("passwords", JSON.stringify(updatedEntries));
+                    Toast.show({
+                        type: "success",
+                        text1: "Deleted",
+                        text2: "Password entry deleted successfully.",
+                    });
+                    router.push("/vault");
+                }
+            } catch (error) {
+                console.error("Error deleting password:", error);
+                Toast.show({
+                    type: "error",
+                    text1: "Error",
+                    text2: "Failed to delete password.",
+                });
+            }
+        } else {
+            setLastClickTime(currentTime);
+            Toast.show({
+                type: "info",
+                text1: "Double-click to confirm deletion",
+            });
+        }
+    };
+
     return (
-        <View className="flex-1 p-20 bg-bgColor jutify-center items-center">
+        <View className="flex-1 p-10 bg-bgColor items-center">
             <TouchableOpacity className="absolute top-4 left-4" onPress={() => router.back()}>
-                <Ionicons name="arrow-back" size={40} color="#fbfff5" />
+                <Ionicons name="arrow-back" size={30} color="#fbfff5" />
             </TouchableOpacity>
 
-	    
-	    {!isAuthenticated ? (
+            {!isAuthenticated ? (
                 <View className="w-full items-center">
-		    <Text className="text-textLight text-center text-[30px] font-bold font-[Cinzel] mt-40">
-			Verify
-		    </Text>
+                    <Text className="text-textLight text-center text-[30px] font-bold font-[Cinzel] mt-60">
+                        Verify
+                    </Text>
 
-		    <TextInput
-                        className="mt-6 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
+                    <TextInput
+                        className="mt-6 font-bold py-2 px-6 w-60 text-base text-black rounded-full bg-btnLight"
                         secureTextEntry
                         value={enteredPassword}
                         onChangeText={setEnteredPassword}
                         placeholder="Enter password"
                         placeholderTextColor="#598da5"
-		    />
-		    <TouchableOpacity
-                        className="bg-blueish px-6 py-3 rounded-full w-60 mt-6 self-center mt-6"
+                    />
+                    <TouchableOpacity
+                        className="bg-blueish px-6 py-2 rounded-full w-60 mt-5 self-center"
                         onPress={handleAuthenticate}
-		    >
+                    >
                         <Text className="text-black font-bold text-center">Unlock</Text>
-		    </TouchableOpacity>
+                    </TouchableOpacity>
                 </View>
-	    ) : (
+            ) : (
                 <View className="w-full items-center">
-		    <Text className="text-textLight text-center text-[25px] font-[Cinzel] mt-35">
-			Name:</Text>
-		    <TextInput
-                        className="my-4 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
+                    <Text className="text-textLight text-center text-[15px] font-[Cinzel] font-bold mt-8">
+                        NAME
+                    </Text>
+                    <TextInput
+                        className="my-4 font-bold py-2 px-6 w-60 text-base text-black rounded-full bg-btnLight"
                         value={newName}
                         onChangeText={setNewName}
-		    />
+                    />
 
-		    <Text className="text-white text-[15px] my-2">New Password (Leave empty to keep the same):</Text>
-		    <TextInput
-                        className="my-21 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
+                    <Text className="text-white text-[15px] my-2 font-bold">
+                        NEW PASSWORD
+                    </Text>
+                    <TextInput
+                        className="my-2 font-bold py-2 px-6 w-60 text-base text-black rounded-full bg-btnLight"
                         secureTextEntry
                         value={newPassword}
                         onChangeText={setNewPassword}
                         placeholder="Enter new password"
                         placeholderTextColor="#598da5"
-		    />
+                    />
 
-		    <Text className="text-white text-[20px] my-2">Select Platforms:</Text>
-		    {PLATFORMS.map((platform) => (
+                    <Text className="text-white text-[15px] font-bold my-2">SELECT PLATFORMS:</Text>
+                    {PLATFORMS.map((platform) => (
                         <TouchableOpacity
-			    key={platform}
-			    className="flex-row items-center mb-2"
-			    onPress={() => handlePlatformToggle(platform)}
+                            key={platform}
+                            className="flex-row items-center mb-2"
+                            onPress={() => handlePlatformToggle(platform)}
                         >
-			    <View
+                            <View
                                 className={`w-5 h-5 rounded-sm border ${
-                                    selectedPlatforms.includes(platform) ? "bg-blue-500" : "border-gray-500"
+                                    selectedPlatforms.includes(platform)
+                                        ? "bg-blue-500"
+                                        : "border-gray-500"
                                 }`}
-			    />
-			    <Text className="text-white text-[15] ml-2">{platform}</Text>
+                            />
+                            <Text className="text-white text-[15px] ml-2">{platform}</Text>
                         </TouchableOpacity>
-		    ))}
+                    ))}
 
-		    {selectedPlatforms.includes("Custom") && (
+                    {selectedPlatforms.includes("Custom") && (
                         <TextInput
-                            className="mt-6 font-bold p-3 px-6 w-200 text-base text-black dark:text-red rounded-full bg-btnLight"
-			    placeholder="Enter custom platform"
-			    placeholderTextColor="#598da5"
-			    value={customPlatform}
-			    onChangeText={setCustomPlatform}
+                            className="mt-6 font-bold p-3 px-6 w-200 text-base text-black rounded-full bg-btnLight"
+                            placeholder="Enter custom platform"
+                            placeholderTextColor="#598da5"
+                            value={customPlatform}
+                            onChangeText={setCustomPlatform}
                         />
-		    )}
+                    )}
 
-		    <TouchableOpacity
-                        className="bg-blueish px-6 py-3 rounded-full w-60 mt-6 self-center mt-6"
+                    <TouchableOpacity
+                        className="bg-blueish px-6 py-2 rounded-full w-60 mt-5 self-center"
                         onPress={handleSaveChanges}
-		    >
+                    >
                         <Text className="text-white font-bold text-center">Save Changes</Text>
-		    </TouchableOpacity>
+                    </TouchableOpacity>
 
-		    <TouchableOpacity
-			className="bg-red-500 px-6 py-3 rounded-full w-60 mt-6 self-center"
-				   onPress={handleDeletePassword}
-		    >
-			<Text className="text-white font-bold text-center">Delete Password</Text>
-		    </TouchableOpacity>
-
+                    <TouchableOpacity
+                        className="bg-red-500 px-6 py-2 rounded-full w-60 mt-5 self-center"
+                        onPress={handleDeletePassword}
+                    >
+                        <Text className="text-white font-bold text-center">Delete Password</Text>
+                    </TouchableOpacity>
                 </View>
-	    )}
-	    <Toast position="top" />
+            )}
+            <Toast position="top" />
         </View>
     );
 }
