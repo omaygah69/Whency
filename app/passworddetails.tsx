@@ -208,7 +208,7 @@ export default function PasswordDetails() {
                         secureTextEntry
                         value={newPassword}
                         onChangeText={setNewPassword}
-                        placeholder="Enter new password"
+                        placeholder="Leave empty to keep password"
                         placeholderTextColor="#598da5"
                     />
 

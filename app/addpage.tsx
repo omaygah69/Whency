@@ -21,6 +21,8 @@ export default function AddPage() {
     const [password, setPassword] = useState("");
     const [reType, setRetype] = useState("");
     const [strength, setStrength] = useState({ score: 0, feedback: {} });
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [retypeVisible, setRetypeVisible] = useState(false);
 
     const successAnim = useRef(new Animated.Value(0)).current;
 
@@ -183,23 +185,41 @@ export default function AddPage() {
                 onChangeText={setName}
             />
 
-            <TextInput
-                className="font-bold p-2 px-6 w-60 text-base text-black dark:text-red rounded-full bg-btnLight mt-5"
-                placeholder="Enter password"
-                placeholderTextColor="#598da5"
-                value={password}
-                onChangeText={handlePasswordChange}
-                secureTextEntry={true}
-            />
+	    <View className="flex-row items-center bg-btnLight rounded-full w-60 mt-5 px-3">
+		<TextInput
+		    className="flex-1 font-bold py-2 px-3 text-base text-black dark:text-red"
+		    placeholder="Enter password"
+		    placeholderTextColor="#598da5"
+		    value={password}
+		    onChangeText={handlePasswordChange}
+		    secureTextEntry={!passwordVisible}
+		/>
+		<TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+		    <Ionicons
+			name={passwordVisible ? "eye-off" : "eye"}
+			     size={22}
+			     color="#598da5"
+		    />
+		</TouchableOpacity>
+	    </View>
 
-            <TextInput
-                className="font-bold py-2 px-6 w-60 text-base text-black dark:text-red rounded-full bg-btnLight mt-5"
-                placeholder="Retype password"
-                placeholderTextColor="#598da5"
-                value={reType}
-                onChangeText={setRetype}
-                secureTextEntry={true}
-            />
+	    <View className="flex-row items-center bg-btnLight rounded-full w-60 mt-5 px-3">
+		<TextInput
+		    className="flex-1 font-bold py-2 px-3 text-base text-black dark:text-red"
+		    placeholder="Retype password"
+		    placeholderTextColor="#598da5"
+		    value={reType}
+		    onChangeText={setRetype}
+		    secureTextEntry={!retypeVisible}
+		/>
+		<TouchableOpacity onPress={() => setRetypeVisible(!retypeVisible)}>
+		    <Ionicons
+			name={retypeVisible ? "eye-off" : "eye"}
+			     size={22}
+			     color="#598da5"
+		    />
+		</TouchableOpacity>
+	    </View>
 
             {password.length > 0 && (
                 <Text className="text-[15px] font-bold mt-4" style={{ color: strengthInfo.color }}>

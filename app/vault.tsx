@@ -33,6 +33,31 @@ export default function Vault() {
         }
     };
 
+    const deletePassword = (indexToDelete: number) => {
+	Alert.alert(
+            "Delete Entry",
+            "Are you sure you want to delete this password?",
+            [
+		{ text: "Cancel", style: "cancel" },
+		{
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+			try {
+                            const updatedEntries = [...passwordEntries];
+                            updatedEntries.splice(indexToDelete, 1);
+                            setPasswordEntries(updatedEntries);
+                            await AsyncStorage.setItem("passwords", JSON.stringify(updatedEntries));
+			} catch (error) {
+                            console.error("Error deleting password:", error);
+			}
+                    },
+		},
+            ],
+            { cancelable: true }
+	);
+    };
+
     const clearPasswords = () => {
 	Alert.alert(
             "Confirm Deletion",
@@ -86,26 +111,35 @@ export default function Vault() {
             ) : (
                 <ScrollView className="w-full p-2">
                     {passwordEntries.map((entry, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            className="bg-btnLight p-4 my-2 rounded-md"
-                            onPress={() =>
-                                router.push({
-                                    pathname: "/passworddetails",
-                                    params: { name: entry.name },
-                                })
-                            }
-                        >
-                            <Text className="text-black font-bold">Name: {entry.name}</Text>
-                            <Text className="text-black break-all">Hash: {entry.hashedPassword}</Text>
-                            <Text className="text-black">
-                                Expiry Date: {formatExpiryDate(entry.expiryDate)}
-                                {isExpired(entry.expiryDate) && (
-                                    <Text className="text-red-600 font-bold"> (Expired)</Text>
-                                )}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+			<View
+			    key={index}
+			    className="bg-btnLight p-4 my-2 rounded-md flex-row justify-between items-start"
+			>
+			    <TouchableOpacity
+				className="flex-1"
+					   onPress={() =>
+					       router.push({
+						   pathname: "/passworddetails",
+						   params: { name: entry.name },
+					       })
+					   }
+			    >
+				<Text className="text-black font-bold">Name: {entry.name}</Text>
+				<Text className="text-black break-all">Hash: {entry.hashedPassword}</Text>
+				<Text className="text-black">
+				    Expiry Date: {formatExpiryDate(entry.expiryDate)}
+				    {isExpired(entry.expiryDate) && (
+					<Text className="text-red-600 font-bold"> (Expired)</Text>
+				    )}
+				</Text>
+			    </TouchableOpacity>
+
+			    <TouchableOpacity onPress={() => deletePassword(index)} className="ml-4 mt-1">
+				<Ionicons name="trash-bin" size={24} color="red" />
+			    </TouchableOpacity>
+			</View>
+		    ))}
+
                 </ScrollView>
             )}
 
