@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { Alert } from "react-native";
 
 type PasswordEntry = {
     name: string;
@@ -32,13 +33,30 @@ export default function Vault() {
         }
     };
 
-    const clearPasswords = async () => {
-        try {
-            await AsyncStorage.removeItem("passwords");
-            setPasswordEntries([]);
-        } catch (error) {
-            console.error("Error clearing passwords:", error);
-        }
+    const clearPasswords = () => {
+	Alert.alert(
+            "Confirm Deletion",
+            "Are you sure you want to clear all stored passwords?",
+            [
+		{
+                    text: "Cancel",
+                    style: "cancel",
+		},
+		{
+                    text: "Yes, Clear All",
+                    style: "destructive",
+                    onPress: async () => {
+			try {
+                            await AsyncStorage.removeItem("passwords");
+                            setPasswordEntries([]);
+			} catch (error) {
+                            console.error("Error clearing passwords:", error);
+			}
+                    },
+		},
+            ],
+            { cancelable: true }
+	);
     };
 
     const formatExpiryDate = (isoDate: string) => {
